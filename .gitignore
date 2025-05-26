@@ -35,3 +35,15 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### DB setting ###
+application-local.properties
+application-secret.properties
+
+### Logs ###
+logs/
+*.log
+
+### Gradle ###
+.gradle/
+build/
