@@ -39,6 +39,8 @@ out/
 ### DB setting ###
 application-local.properties
 application-secret.properties
+application.properties
+application-*.properties
 
 ### Logs ###
 logs/
