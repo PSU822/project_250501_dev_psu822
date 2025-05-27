@@ -1,4 +1,4 @@
-package Web01.FindRoom.restful.api.entity;
+package Web01.FindRoom.restful.api.Entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

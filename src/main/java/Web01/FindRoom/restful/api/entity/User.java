@@ -1,4 +1,4 @@
-package Web01.FindRoom.restful.api.entity;
+package Web01.FindRoom.restful.api.Entity;
 
 import java.time.LocalDateTime;
 

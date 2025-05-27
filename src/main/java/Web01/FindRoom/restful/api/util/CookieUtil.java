@@ -1,4 +1,4 @@
-package Web01.FindRoom.restful.api.util;
+package Web01.FindRoom.restful.api.Util;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
