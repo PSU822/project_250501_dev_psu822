@@ -1,0 +1,17 @@
+.container {
+  margin-left: 200px;
+  margin-top: 2rem;
+  margin-right: 2rem;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+h2 {
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #0d3c75;
+  padding-bottom: 0.5rem;
+  font-size: 1.2rem;
+  color: #0d3c75;
+}

@@ -1,0 +1,74 @@
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="fragments/fixture :: head('강의실 현황')" />
+</head>
+<body>
+<div th:replace="fragments/fixture :: headerAndNav"></div>
+
+<div class="container">
+    <h2>강의실 현황</h2>
+
+    <div class="filters">
+        <input type="date" id="date">
+        <select id="facility">
+            <option disabled selected>시설 선택</option>
+            <option value="정의관">정의관</option>
+            <option value="청송관">청송관</option>
+            <option value="컨버전스홀">컨버전스홀</option>
+            <option value="창조관">창조관</option>
+            <option value="미래관">미래관</option>
+        </select>
+        <select id="startTime">
+            <option value="09:00">09:00</option>
+            <option value="10:00">10:00</option>
+            <option value="11:00">11:00</option>
+            <option value="12:00">12:00</option>
+            <option value="13:00">13:00</option>
+            <option value="14:00">14:00</option>
+            <option value="15:00">15:00</option>
+            <option value="16:00">16:00</option>
+            <option value="17:00">17:00</option>
+            <option value="18:00">18:00</option>
+            <option value="19:00">19:00</option>
+            <option value="20:00">20:00</option>
+            <option value="21:00">21:00</option>
+        </select>
+        <span>~</span>
+        <select id="endTime">
+            <option value="10:00">10:00</option>
+            <option value="11:00">11:00</option>
+            <option value="12:00">12:00</option>
+            <option value="13:00">13:00</option>
+            <option value="14:00">14:00</option>
+            <option value="15:00">15:00</option>
+            <option value="16:00">16:00</option>
+            <option value="17:00">17:00</option>
+            <option value="18:00">18:00</option>
+            <option value="19:00">19:00</option>
+            <option value="20:00">20:00</option>
+            <option value="21:00">21:00</option>
+            <option value="22:00">22:00</option>
+        </select>
+        <button id="searchBtn">검색</button>
+    </div>
+
+    <table id="resultTable">
+        <thead>
+        <tr>
+            <th>건물명</th>
+            <th>층수</th>
+            <th>강의실명</th>
+            <th>정원</th>
+            <th>참여 가능 시간</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- JS로 데이터 삽입 -->
+        </tbody>
+    </table>
+</div>
+
+<script th:src="@{/js/participate.js}"></script>
+
+</body>
+</html>

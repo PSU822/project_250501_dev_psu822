@@ -1,0 +1,45 @@
+<th:block th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <title th:text="${title}">페이지 제목</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+
+    <th:block th:if="${title == '강의실 현황'}">
+        <link rel="stylesheet" th:href="@{/css/participate.css}" />
+    </th:block>
+
+    <th:block th:if="${title == '서비스 소개'}">
+        <link rel="stylesheet" th:href="@{/css/info.css}" />
+    </th:block>
+
+    <th:block th:if="${title == '마이페이지'}">
+        <link rel="stylesheet" th:href="@{/css/mypage.css}" />
+    </th:block>
+
+</th:block>
+
+<th:block th:fragment="headerAndNav">
+    <header>
+        <div class="header-content">
+            <div class="header-title">
+                <h1>연세대학교 미래캠퍼스 빈 강의실 찾기 서비스</h1>
+                <span>Yonsei University Mirae Campus Empty Classroom Finder Service</span>
+            </div>
+            <div class="header-auth">
+                <a href="#">로그인</a>
+                <a href="#">ENGLISH</a>
+            </div>
+        </div>
+    </header>
+
+    <nav class="sidebar">
+        <div class="sidebar-content">
+            <img src="https://i.namu.wiki/i/8FCgNqlkK-QnA_6-52ZbfFJ_Wz_Gsm9zkPybokRMl8R0H4ZgUL0wu1lggVUIHhEwIxGXPOYR9gw9RDFxiW46Eg.svg" alt="로고" style="width: 70px; height: 70px; margin: 10px auto; display: block;" />
+            <div class="nav-dot"></div>
+            <div class="nav-dot"></div>
+            <div class="nav-dot"></div>
+            <a class="nav-link" href="/info">서비스 안내</a>
+            <a class="nav-link" href="/participate">강의실 찾기</a>
+            <a class="nav-link" href="/mypage">마이페이지</a>
+        </div>
+    </nav>
+</th:block>
