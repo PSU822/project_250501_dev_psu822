@@ -2,57 +2,35 @@ package Web01.FindRoom.restful.api.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import Web01.FindRoom.restful.api.DTO.APIResponseDTO;
-import Web01.FindRoom.restful.api.Service.UsageService;
+import Web01.FindRoom.restful.api.DTO.HistoryDTO;
+import Web01.FindRoom.restful.api.Service.HistoryService;
 import Web01.FindRoom.restful.api.Util.CookieUtil;
-
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api")
-public class UsageController {
+@RequestMapping("/api/history")
+public class HistoryController {
 
     @Autowired
-    private UsageService usageService;
+    private HistoryService historyService;
 
-    @PutMapping("/usage/start")
-    public ResponseEntity<APIResponseDTO<Void>> start(HttpServletRequest request) {
+    @PutMapping("/add")
+    public ResponseEntity<APIResponseDTO<Void>> historyAdd(@RequestBody HistoryDTO req, HttpServletRequest cookie_req) {
 
-        // 쿠키에서 userId 추출
-        String userId = CookieUtil.getUserIdFromCookie(request);
-
-        if (userId == null) {
-            return ResponseEntity.status(401)
-                    .body(APIResponseDTO.error("로그인이 필요합니다."));
-        }
-
-        APIResponseDTO<Void> result = usageService.start(userId);
-
-        if (result.isSuccess()) {
-            return ResponseEntity.ok(result);
-        } else {
-            int statusCode = getStatusCode(result.getMessage());
-            return ResponseEntity.status(statusCode).body(result);
-        }
-    }
-
-    @PutMapping("/usage/end")
-    public ResponseEntity<APIResponseDTO<Void>> end(HttpServletRequest request) {
-
-        // 쿠키에서 userId 추출
-        String userId = CookieUtil.getUserIdFromCookie(request);
+        String userId = CookieUtil.getUserIdFromCookie(cookie_req);
 
         if (userId == null) {
             return ResponseEntity.status(401)
                     .body(APIResponseDTO.error("로그인이 필요합니다."));
         }
 
-        APIResponseDTO<Void> result = usageService.end(userId);
+        APIResponseDTO<Void> result = historyService.AddHistory(userId, req);
 
         if (result.isSuccess()) {
             return ResponseEntity.ok(result);

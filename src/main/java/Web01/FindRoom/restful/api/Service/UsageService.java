@@ -2,8 +2,8 @@ package Web01.FindRoom.restful.api.Service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,12 +33,6 @@ public class UsageService {
                 return APIResponseDTO.error("사용 기록을 찾을 수 없습니다.");
             }
 
-            String building = getBuildingByClassId(usageData.getClassId());
-            if (building == null) {
-                return APIResponseDTO.error("강의실을 찾을 수 없습니다.");
-            }
-            usageData.setBuilding(building);
-
             if (!updateRoomUsage(usageData, true)) {
                 return APIResponseDTO.error("강의실 최대 인원을 초과했습니다.");
             }
@@ -61,12 +55,6 @@ public class UsageService {
                 return APIResponseDTO.error("사용 기록을 찾을 수 없습니다.");
             }
 
-            String building = getBuildingByClassId(usageData.getClassId());
-            if (building == null) {
-                return APIResponseDTO.error("강의실을 찾을 수 없습니다.");
-            }
-            usageData.setBuilding(building);
-
             if (!updateRoomUsage(usageData, false)) {
                 return APIResponseDTO.error("이미 강의실 인원이 0입니다.");
             }
@@ -85,10 +73,9 @@ public class UsageService {
         try {
             @SuppressWarnings("unchecked")
             List<Object[]> historyResult = entityManager.createNativeQuery(
-                    "SELECT classId, participant_count, "
-                    + "cnt_alone_study, cnt_group_meeting, cnt_quiet, "
-                    + "cnt_free_talk, cnt_short_stay, cnt_comfortable "
-                    + "FROM history WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")
+                    "SELECT classId, participant_count, hashtags "
+                    + // hashtags 컬럼만!
+                    "FROM history WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")
                     .setParameter(1, userId)
                     .getResultList();
 
@@ -98,19 +85,10 @@ public class UsageService {
 
             Object[] history = historyResult.get(0);
 
-            List<String> selectedHashtags = getSelectedHashtags(
-                    (Integer) history[2], // cnt_alone_study
-                    (Integer) history[3], // cnt_group_meeting
-                    (Integer) history[4], // cnt_quiet
-                    (Integer) history[5], // cnt_free_talk
-                    (Integer) history[6], // cnt_short_stay
-                    (Integer) history[7] // cnt_comfortable
-            );
-
             return UsageDTO.builder()
                     .classId((String) history[0])
                     .participantCount((Integer) history[1])
-                    .hashtags(String.join(",", selectedHashtags))
+                    .hashtags((String) history[2]) // 직접 hashtags 사용
                     .build();
 
         } catch (Exception e) {
@@ -124,9 +102,7 @@ public class UsageService {
         try {
             @SuppressWarnings("unchecked")
             List<Object[]> historyResult = entityManager.createNativeQuery(
-                    "SELECT id, classId, participant_count, "
-                    + "cnt_alone_study, cnt_group_meeting, cnt_quiet, "
-                    + "cnt_free_talk, cnt_short_stay, cnt_comfortable, "
+                    "SELECT history_id, classId, participant_count, hashtags, "
                     + "start_time, end_time "
                     + "FROM history WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")
                     .setParameter(1, userId)
@@ -138,83 +114,30 @@ public class UsageService {
 
             Object[] history = historyResult.get(0);
 
-            // endTime 처리용 
-            Long historyId = ((Number) history[0]).longValue();         //id
-            Timestamp originalEndTime = (Timestamp) history[10];        // end_time
+            // early end 처리
+            Long historyId = ((Number) history[0]).longValue();
+            Timestamp originalEndTime = (Timestamp) history[5];
             LocalDateTime endTime = originalEndTime.toLocalDateTime();
             LocalDateTime now = LocalDateTime.now();
 
-            // end_time이 현재 시간보다 미래라면 수정
             if (endTime.isAfter(now)) {
                 logger.info("사용자 {}가 예정 시간보다 일찍 종료. end_time 업데이트: {} -> {}", userId, endTime, now);
 
                 entityManager.createNativeQuery(
-                        "UPDATE history SET end_time = ? WHERE id = ?")
+                        "UPDATE history SET end_time = ? WHERE history_id = ?")
                         .setParameter(1, Timestamp.valueOf(now))
                         .setParameter(2, historyId)
                         .executeUpdate();
             }
 
-            List<String> selectedHashtags = getSelectedHashtags(
-                    (Integer) history[3], (Integer) history[4], (Integer) history[5],
-                    (Integer) history[6], (Integer) history[7], (Integer) history[8]
-            );
-
             return UsageDTO.builder()
                     .classId((String) history[1])
                     .participantCount((Integer) history[2])
-                    .hashtags(String.join(",", selectedHashtags))
+                    .hashtags((String) history[3]) // 직접 hashtags 사용
                     .build();
 
         } catch (Exception e) {
             logger.error("히스토리 조회 중 오류: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    private List<String> getSelectedHashtags(Integer aloneStudy, Integer groupMeeting,
-            Integer quiet, Integer freeTalk,
-            Integer shortStay, Integer comfortable) {
-        List<String> selected = new ArrayList<>();
-
-        if (aloneStudy != null && aloneStudy == 1) {
-            selected.add("cnt_alone_study");
-        }
-        if (groupMeeting != null && groupMeeting == 1) {
-            selected.add("cnt_group_meeting");
-        }
-        if (quiet != null && quiet == 1) {
-            selected.add("cnt_quiet");
-        }
-        if (freeTalk != null && freeTalk == 1) {
-            selected.add("cnt_free_talk");
-        }
-        if (shortStay != null && shortStay == 1) {
-            selected.add("cnt_short_stay");
-        }
-        if (comfortable != null && comfortable == 1) {
-            selected.add("cnt_comfortable");
-        }
-
-        return selected;
-    }
-
-    private String getBuildingByClassId(String classId) {
-        try {
-            @SuppressWarnings("unchecked")
-            List<Object[]> roomResult = entityManager.createNativeQuery(
-                    "SELECT building FROM lecture_room WHERE classId = ?")
-                    .setParameter(1, classId)
-                    .getResultList();
-
-            if (roomResult.isEmpty()) {
-                return null;
-            }
-
-            return (String) roomResult.get(0)[0];
-
-        } catch (Exception e) {
-            logger.error("건물 조회 중 오류: {}", e.getMessage());
             return null;
         }
     }
@@ -259,16 +182,30 @@ public class UsageService {
             return;
         }
 
-        String operation = isStart ? " + 1 " : " - 1 ";
-        String[] selectedColumns = hashtags.split(",");
+        Map<String, String> hashtagToColumn = Map.of(
+                "혼자 개인 공부해요", "cnt_alone_study",
+                "여럿이서 회의해요", "cnt_group_meeting",
+                "조용하게 있어요", "cnt_quiet",
+                "자유롭게 대화해요", "cnt_free_talk",
+                "아주 잠깐 머물러요", "cnt_short_stay",
+                "편하게 있어요", "cnt_comfortable"
+        );
 
-        for (String column : selectedColumns) {
-            column = column.trim();
-            entityManager.createNativeQuery(
-                    "UPDATE lecture_room SET " + column + " = " + column + operation
-                    + " WHERE classId = ?")
-                    .setParameter(1, classId)
-                    .executeUpdate();
+        String operation = isStart ? " + 1 " : " - 1 ";
+
+        String[] selectedHashtags = hashtags.split(",");
+
+        for (String hashtag : selectedHashtags) {
+            hashtag = hashtag.trim();
+            String column = hashtagToColumn.get(hashtag);
+
+            if (column != null) {
+                entityManager.createNativeQuery(
+                        "UPDATE lecture_room SET " + column + " = " + column + operation
+                        + " WHERE classId = ?")
+                        .setParameter(1, classId)
+                        .executeUpdate();
+            }
         }
     }
 
