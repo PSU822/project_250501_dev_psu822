@@ -1,11 +1,12 @@
 package Web01.FindRoom.restful.api.Service;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,7 +56,7 @@ public class UsageService {
         logger.info("강의실 사용 종료: {}", userId);
 
         try {
-            UsageDTO usageData = getLatestHistoryData(userId);
+            UsageDTO usageData = getLatestHistoryDataForEnd(userId);
             if (usageData == null) {
                 return APIResponseDTO.error("사용 기록을 찾을 수 없습니다.");
             }
@@ -109,6 +110,59 @@ public class UsageService {
             return UsageDTO.builder()
                     .classId((String) history[0])
                     .participantCount((Integer) history[1])
+                    .hashtags(String.join(",", selectedHashtags))
+                    .build();
+
+        } catch (Exception e) {
+            logger.error("히스토리 조회 중 오류: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    // 위의 메소드와 구조적으로 동일, earlyend 예외 상황 추가
+    private UsageDTO getLatestHistoryDataForEnd(String userId) {
+        try {
+            @SuppressWarnings("unchecked")
+            List<Object[]> historyResult = entityManager.createNativeQuery(
+                    "SELECT id, classId, participant_count, "
+                    + "cnt_alone_study, cnt_group_meeting, cnt_quiet, "
+                    + "cnt_free_talk, cnt_short_stay, cnt_comfortable, "
+                    + "start_time, end_time "
+                    + "FROM history WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")
+                    .setParameter(1, userId)
+                    .getResultList();
+
+            if (historyResult.isEmpty()) {
+                return null;
+            }
+
+            Object[] history = historyResult.get(0);
+
+            // endTime 처리용 
+            Long historyId = ((Number) history[0]).longValue();         //id
+            Timestamp originalEndTime = (Timestamp) history[10];        // end_time
+            LocalDateTime endTime = originalEndTime.toLocalDateTime();
+            LocalDateTime now = LocalDateTime.now();
+
+            // end_time이 현재 시간보다 미래라면 수정
+            if (endTime.isAfter(now)) {
+                logger.info("사용자 {}가 예정 시간보다 일찍 종료. end_time 업데이트: {} -> {}", userId, endTime, now);
+
+                entityManager.createNativeQuery(
+                        "UPDATE history SET end_time = ? WHERE id = ?")
+                        .setParameter(1, Timestamp.valueOf(now))
+                        .setParameter(2, historyId)
+                        .executeUpdate();
+            }
+
+            List<String> selectedHashtags = getSelectedHashtags(
+                    (Integer) history[3], (Integer) history[4], (Integer) history[5],
+                    (Integer) history[6], (Integer) history[7], (Integer) history[8]
+            );
+
+            return UsageDTO.builder()
+                    .classId((String) history[1])
+                    .participantCount((Integer) history[2])
                     .hashtags(String.join(",", selectedHashtags))
                     .build();
 
