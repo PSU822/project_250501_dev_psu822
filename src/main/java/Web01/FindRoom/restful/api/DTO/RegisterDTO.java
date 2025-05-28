@@ -1,21 +1,20 @@
 package Web01.FindRoom.restful.api.DTO;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import Web01.FindRoom.restful.api.Entity.UserType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL) // 응답 형식에 NULL이 있는 것이 프론트에서 보고 쓰기 어렵다는 판단으로 추가
 public class RegisterDTO {
 
     @NotBlank(message = "사용자 ID는 필수입력입니다.")
