@@ -8,40 +8,119 @@
 
 ### 🔐 인증
 
-- `POST /api/auth/register` - 회원가입
-- `POST /api/auth/login` - 로그인
-- `POST /api/auth/logout` - 로그아웃
+#### 회원가입
+
+```http
+POST http://localhost:8080/api/register
+Content-Type: application/json
+
+{
+  "userId": "test",
+  "name": "gildong",
+  "password": "test",
+  "user_type": "undergraduate"
+}
+```
+
+#### 로그인
+
+```http
+POST http://localhost:8080/api/login
+Content-Type: application/json
+
+{
+  "userId": "test",
+  "password": "test",
+  "user_type": "undergraduate"
+}
+```
+
+#### 로그아웃
+
+```http
+POST http://localhost:8080/api/logout
+```
+
+#### 로그인 상태 확인
+
+```http
+GET http://localhost:8080/api/auth/me
+```
+
+**응답 예시:**
+
+```json
+{
+  "success": true,
+  "message": "로그인 상태 확인 완료",
+  "data": {
+    "loggedIn": true,
+    "userId": "test"
+  }
+}
+```
 
 ### 🏫 강의실
 
-- `GET /api/lectureroom/search` - 강의실 검색
-- `GET /api/lectureroom/select` - 강의실 상세조회
+#### 강의실 검색
 
-### 📝 사용 기록
+```http
+GET http://localhost:8080/api/lectureroom/search?building=창조관&weekday=월&time=14:00:00
+```
 
-- `PUT /api/usage/start` - 사용 시작
-- `PUT /api/usage/end` - 사용 종료
+#### 강의실 상세조회
+
+```http
+GET http://localhost:8080/api/lectureroom/select?building=창조관&classId=cha511
+```
 
 ### ⭐ 즐겨찾기
 
-- `PUT /api/favorites/add` - 자동 추가
-- `POST /api/favorites/add-manual` - 수동 추가
-- `DELETE /api/favorites/del` - 삭제
-- `POST /api/favorites/list` - 목록 조회
+#### 자동 추가 (최근 히스토리 기반)
+
+```http
+PUT http://localhost:8080/api/favorites/add
+```
+
+#### 수동 추가
+
+```http
+POST http://localhost:8080/api/favorites/add-manual
+Content-Type: application/json
+
+{
+  "classId": "cha511",
+  "weekday": "월",
+  "startTime": "14:00:00",
+  "endTime": "16:00:00",
+  "participantCount": 2
+}
+```
+
+#### 즐겨찾기 삭제
+
+```http
+DELETE http://localhost:8080/api/favorites/del
+Content-Type: application/json
+
+{
+  "classId": "cha511",
+  "weekday": "월",
+  "startTime": "14:00:00",
+  "endTime": "16:00:00"
+}
+```
 
 ### 📊 기타
 
-- `POST /api/history/add` - 히스토리 추가
-- `POST /api/mypage/info` - 마이페이지 조회
+#### 마이페이지 조회
 
-## 설정
+```http
+POST http://localhost:8080/api/mypage/info
+```
 
-1. `application-example.properties`를 `application.properties`로 복사
-2. DB 연결 정보 수정
-3. `./gradlew bootRun` 실행
-
-## 주의사항
+## ⚠️ 주의사항
 
 - 모든 API는 Cookie 기반 인증 사용
-- @Valid 검증 적용됨
-- CORS 설정 필요 시 추가 설정
+- 로그인 후 Cookie가 자동으로 설정됨
+- @Valid 검증 적용으로 잘못된 데이터 시 400 에러 반환
