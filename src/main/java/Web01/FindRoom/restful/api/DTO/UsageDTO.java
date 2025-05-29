@@ -20,12 +20,6 @@ public class UsageDTO {
     private String building;
     private Integer participantCount;
     private String hashtags;
-
-    public static UsageDTO fromHistory(String classId, Integer participantCount, String hashtags) {
-        return UsageDTO.builder()
-                .classId(classId)
-                .participantCount(participantCount)
-                .hashtags(hashtags)
-                .build();
-    }
+    private Integer capacity;
+    private Integer currentOccupancy;
 }

@@ -12,6 +12,7 @@ import Web01.FindRoom.restful.api.DTO.HistoryDTO;
 import Web01.FindRoom.restful.api.Service.HistoryService;
 import Web01.FindRoom.restful.api.Util.CookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/history")
@@ -21,7 +22,7 @@ public class HistoryController {
     private HistoryService historyService;
 
     @PutMapping("/add")
-    public ResponseEntity<APIResponseDTO<Void>> historyAdd(@RequestBody HistoryDTO req, HttpServletRequest cookie_req) {
+    public ResponseEntity<APIResponseDTO<Void>> historyAdd(@Valid @RequestBody HistoryDTO req, HttpServletRequest cookie_req) {
 
         String userId = CookieUtil.getUserIdFromCookie(cookie_req);
 

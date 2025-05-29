@@ -24,7 +24,7 @@ public class FavService {
     private EntityManager entityManager;
 
     public APIResponseDTO<Void> addFavorite(String userId, FavDTO dto) {
-        logger.info("즐겨찾기 추가: {}", userId);
+        logger.info("즐겨찾기 수동 추가: {}", userId);
 
         try {
             Long count = ((Number) entityManager.createNativeQuery(
@@ -56,6 +56,65 @@ public class FavService {
             logger.error("즐겨찾기 추가 중 오류 발생: {}", e.getMessage());
             return APIResponseDTO.error("즐겨찾기 추가 중 문제가 발생했습니다.");
         }
+    }
+
+    public APIResponseDTO<Void> addFavoriteAuto(String userId) {
+        logger.info("즐겨찾기 자동 추가: {}", userId);
+
+        try {
+            @SuppressWarnings("unchecked")
+            List<Object[]> historyResult = entityManager.createNativeQuery(
+                    "SELECT history_id, classId, participant_count, hashtags, "
+                    + "TIME(start_time), TIME(end_time), weekday "
+                    + "FROM history WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")
+                    .setParameter(1, userId)
+                    .getResultList();
+
+            if (historyResult.isEmpty()) {
+                logger.info("사용자 {}의 히스토리 존재하지않음.", userId);
+                return APIResponseDTO.error("사용자 {}의 히스토리 존재하지않습니다.");
+            }
+
+            Object[] history = historyResult.get(0);
+            // 히스토리 데이터를 FavDTO로 변환하고 파싱
+            FavDTO historyToFav = FavDTO.builder()
+                    .classId((String) history[1]) // classId
+                    .participantCount((Integer) history[2]) // participant_count
+                    .startTime(history[4].toString()) // start_time
+                    .endTime(history[5].toString()) // end_time
+                    .weekday(history[6].toString()) // weekday
+                    .build();
+
+            Long count = ((Number) entityManager.createNativeQuery(
+                    "SELECT COUNT(*) FROM user_favorite WHERE user_id = ? AND classId = ? AND weekday = ? AND start_time = ? AND end_time = ?")
+                    .setParameter(1, userId)
+                    .setParameter(2, historyToFav.getClassId())
+                    .setParameter(3, historyToFav.getWeekday())
+                    .setParameter(4, LocalTime.parse(historyToFav.getStartTime()))
+                    .setParameter(5, LocalTime.parse(historyToFav.getEndTime()))
+                    .getSingleResult()).longValue();
+
+            if (count > 0) {
+                return APIResponseDTO.error("이미 동일한 즐겨찾기가 존재합니다.");
+            }
+
+            entityManager.createNativeQuery(
+                    "INSERT INTO user_favorite (user_id, classId, weekday, start_time, end_time, participant_count) "
+                    + "VALUES (?, ?, ?, ?, ?, ?)")
+                    .setParameter(1, userId)
+                    .setParameter(2, historyToFav.getClassId())
+                    .setParameter(3, historyToFav.getWeekday())
+                    .setParameter(4, LocalTime.parse(historyToFav.getStartTime()))
+                    .setParameter(5, LocalTime.parse(historyToFav.getEndTime()))
+                    .setParameter(6, historyToFav.getParticipantCount())
+                    .executeUpdate();
+
+            return APIResponseDTO.success("즐겨찾기가 추가되었습니다.");
+        } catch (Exception e) {
+            logger.error("즐겨찾기 추가 중 오류 발생: {}", e.getMessage());
+            return APIResponseDTO.error("즐겨찾기 추가 중 문제가 발생했습니다.");
+        }
+
     }
 
     public APIResponseDTO<Void> removeFavorite(String userId, FavDTO dto) {
@@ -98,7 +157,7 @@ public class FavService {
 
             List<FavDTO> dtoList = results.stream().map(row -> FavDTO.builder()
                     .classId((String) row[0])
-                    .weekday((String) row[1])
+                    .weekday((String) row[1].toString())
                     .startTime(row[2].toString())
                     .endTime(row[3].toString())
                     .participantCount(((Number) row[4]).intValue())

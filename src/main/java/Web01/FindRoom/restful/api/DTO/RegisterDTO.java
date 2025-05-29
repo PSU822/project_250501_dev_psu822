@@ -27,14 +27,4 @@ public class RegisterDTO {
             message = "사용자 타입이 올바르지 않습니다.")
     private String user_type;
     private UserType userType;
-
-    public static RegisterDTO forRegister(String name, String userId, String password, String user_type) {
-        return RegisterDTO.builder()
-                .name(name)
-                .userId(userId)
-                .password(password)
-                .user_type(user_type)
-                .userType(UserType.valueOf(user_type))
-                .build();
-    }
 }

@@ -45,7 +45,10 @@ public class LectureRoomService {
                     .setParameter(4, searchRequest.getStartTime())
                     .getResultList();
 
-            LectureRoomDTO response = LectureRoomDTO.forSearchResponse(availableRooms, availableRooms.size());
+            LectureRoomDTO response = LectureRoomDTO.builder()
+                    .availableRooms(availableRooms)
+                    .count(availableRooms.size())
+                    .build();
 
             logger.info("강의실 검색 성공: {}개 강의실 발견", availableRooms.size());
             return APIResponseDTO.success("강의실 검색 완료", response);

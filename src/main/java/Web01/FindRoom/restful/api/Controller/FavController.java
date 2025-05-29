@@ -1,15 +1,21 @@
 package Web01.FindRoom.restful.api.Controller;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import Web01.FindRoom.restful.api.DTO.APIResponseDTO;
 import Web01.FindRoom.restful.api.DTO.FavDTO;
 import Web01.FindRoom.restful.api.Service.FavService;
 import Web01.FindRoom.restful.api.Util.CookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/favorites")
@@ -18,7 +24,22 @@ public class FavController {
     @Autowired
     private FavService favService;
 
-    @PostMapping("/add")
+    @PutMapping("/add")
+    public ResponseEntity<APIResponseDTO<Void>> addFavoriteAuto(HttpServletRequest request) {
+        String userId = CookieUtil.getUserIdFromCookie(request);
+        if (userId == null) {
+            return ResponseEntity.status(401).body(APIResponseDTO.error("로그인이 필요합니다."));
+        }
+        APIResponseDTO<Void> result = favService.addFavoriteAuto(userId);
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result);
+        } else {
+            int statusCode = getStatusCode(result.getMessage());
+            return ResponseEntity.status(statusCode).body(result);
+        }
+    }
+
+    @PostMapping("/add-manual")
     public ResponseEntity<APIResponseDTO<Void>> addFavorite(@RequestBody FavDTO dto, HttpServletRequest request) {
         String userId = CookieUtil.getUserIdFromCookie(request);
         if (userId == null) {

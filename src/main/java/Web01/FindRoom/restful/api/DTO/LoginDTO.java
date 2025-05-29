@@ -29,12 +29,4 @@ public class LoginDTO {
 
     private UserType userType;
 
-    public static LoginDTO forLogin(String userId, String password, String user_type) {
-        return LoginDTO.builder()
-                .userId(userId)
-                .password(password)
-                .user_type(user_type)
-                .userType(UserType.valueOf(user_type))
-                .build();
-    }
 }

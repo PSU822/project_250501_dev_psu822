@@ -25,7 +25,12 @@ public class LectureRoomController {
             @RequestParam String weekday,
             @RequestParam String time) {
 
-        LectureRoomDTO searchRequest = LectureRoomDTO.forSearch(building, weekday, time, time);
+        LectureRoomDTO searchRequest = LectureRoomDTO.builder()
+                .building(building)
+                .weekday(weekday)
+                .startTime(time)
+                .endTime(time)
+                .build();
 
         APIResponseDTO<LectureRoomDTO> result = lectureRoomService.search(searchRequest);
 
@@ -40,7 +45,10 @@ public class LectureRoomController {
     public ResponseEntity<APIResponseDTO<LectureRoomDTO>> select(@RequestParam String building,
             @RequestParam String classId) {
 
-        LectureRoomDTO selectRequest = LectureRoomDTO.forSelect(building, classId);
+        LectureRoomDTO selectRequest = LectureRoomDTO.builder()
+                .building(building)
+                .classId(classId)
+                .build();
         APIResponseDTO<LectureRoomDTO> result = lectureRoomService.select(selectRequest);
 
         if (result.isSuccess()) {

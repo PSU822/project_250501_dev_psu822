@@ -74,8 +74,7 @@ public class UsageService {
             @SuppressWarnings("unchecked")
             List<Object[]> historyResult = entityManager.createNativeQuery(
                     "SELECT classId, participant_count, hashtags "
-                    + // hashtags 컬럼만!
-                    "FROM history WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")
+                    + "FROM history WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")
                     .setParameter(1, userId)
                     .getResultList();
 
@@ -85,11 +84,12 @@ public class UsageService {
 
             Object[] history = historyResult.get(0);
 
-            return UsageDTO.builder()
+            UsageDTO historyData = UsageDTO.builder()
                     .classId((String) history[0])
                     .participantCount((Integer) history[1])
-                    .hashtags((String) history[2]) // 직접 hashtags 사용
+                    .hashtags((String) history[2])
                     .build();
+            return historyData;
 
         } catch (Exception e) {
             logger.error("히스토리 조회 중 오류: {}", e.getMessage());
@@ -109,6 +109,7 @@ public class UsageService {
                     .getResultList();
 
             if (historyResult.isEmpty()) {
+                logger.info("사용자 {}의 히스토리 존재하지않음.", userId);
                 return null;
             }
 
@@ -120,6 +121,12 @@ public class UsageService {
             LocalDateTime endTime = originalEndTime.toLocalDateTime();
             LocalDateTime now = LocalDateTime.now();
 
+            UsageDTO historyEndResult = UsageDTO.builder()
+                    .classId((String) history[1])
+                    .participantCount((Integer) history[2])
+                    .hashtags((String) history[3])
+                    .build();
+
             if (endTime.isAfter(now)) {
                 logger.info("사용자 {}가 예정 시간보다 일찍 종료. end_time 업데이트: {} -> {}", userId, endTime, now);
 
@@ -130,11 +137,7 @@ public class UsageService {
                         .executeUpdate();
             }
 
-            return UsageDTO.builder()
-                    .classId((String) history[1])
-                    .participantCount((Integer) history[2])
-                    .hashtags((String) history[3]) // 직접 hashtags 사용
-                    .build();
+            return historyEndResult;
 
         } catch (Exception e) {
             logger.error("히스토리 조회 중 오류: {}", e.getMessage());
@@ -222,10 +225,12 @@ public class UsageService {
             }
 
             Object[] row = result.get(0);
-            Integer capacity = (Integer) row[0];
-            Integer currentOccupancy = (Integer) row[1];
+            UsageDTO roomInfo = UsageDTO.builder()
+                    .capacity((Integer) row[0])
+                    .currentOccupancy((Integer) row[1])
+                    .build();
 
-            return (currentOccupancy + participantCount) <= capacity;
+            return (roomInfo.getCurrentOccupancy() + participantCount) <= roomInfo.getCapacity();
 
         } catch (Exception e) {
             logger.error("사용 가능 여부 체크 중 오류: {}", e.getMessage());
@@ -235,17 +240,10 @@ public class UsageService {
 
     private boolean canEndUsing(String classId, Integer participantCount) {
         try {
-            @SuppressWarnings("unchecked")
-            List<Object[]> result = entityManager.createNativeQuery(
+            Integer currentOccupancy = (Integer) entityManager.createNativeQuery(
                     "SELECT current_occupancy FROM lecture_room WHERE classId = ?")
                     .setParameter(1, classId)
-                    .getResultList();
-
-            if (result.isEmpty()) {
-                return false;
-            }
-
-            Integer currentOccupancy = (Integer) result.get(0)[0];
+                    .getSingleResult();  // getResultList() → getSingleResult()
 
             return currentOccupancy >= participantCount;
 

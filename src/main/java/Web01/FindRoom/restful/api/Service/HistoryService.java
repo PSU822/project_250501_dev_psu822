@@ -1,5 +1,8 @@
 package Web01.FindRoom.restful.api.Service;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,10 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import Web01.FindRoom.restful.api.DTO.APIResponseDTO;
 import Web01.FindRoom.restful.api.DTO.HistoryDTO;
-
 import jakarta.persistence.EntityManager;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 
 @Service
 @Transactional
@@ -26,19 +26,7 @@ public class HistoryService {
         logger.info("해당 사용자 히스토리 작성 : {}", userId);
 
         try {
-            if (historyData.getClassId() == null) {
-                return APIResponseDTO.error("강의실 ID가 비어있습니다.");
-            }
-
-            if (historyData.getEventType() == null) {
-                return APIResponseDTO.error("이벤트 타입이 비어있습니다.");
-            }
-
-            if (historyData.getEndTime() == null || historyData.getEndTime().trim().isEmpty()) {
-                return APIResponseDTO.error("종료 시간이 비어있습니다.");
-            }
-
-            @SuppressWarnings("unused")
+            // 시간 타입 검증
             LocalDateTime endTime;
             try {
                 endTime = LocalDateTime.parse(historyData.getEndTime());
@@ -57,8 +45,8 @@ public class HistoryService {
                     + "VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, NOW())")
                     .setParameter(1, userId)
                     .setParameter(2, historyData.getClassId())
-                    .setParameter(3, historyData.getWeekday()) // 추가!
-                    .setParameter(4, Timestamp.valueOf(LocalDateTime.parse(historyData.getEndTime())))
+                    .setParameter(3, historyData.getWeekday())
+                    .setParameter(4, Timestamp.valueOf(endTime))
                     .setParameter(5, historyData.getParticipantCount())
                     .setParameter(6, hashtagsStr)
                     .setParameter(7, historyData.getEventType().name())

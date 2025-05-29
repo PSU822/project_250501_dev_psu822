@@ -14,7 +14,6 @@ import Web01.FindRoom.restful.api.DTO.LoginDTO;
 import Web01.FindRoom.restful.api.DTO.RegisterDTO;
 import Web01.FindRoom.restful.api.Entity.User;
 import Web01.FindRoom.restful.api.Entity.UserType;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 
