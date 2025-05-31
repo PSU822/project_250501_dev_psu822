@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -54,7 +54,7 @@ public class FavController {
         }
     }
 
-    @DeleteMapping("/del")
+    @PostMapping("/del")
     public ResponseEntity<APIResponseDTO<Void>> removeFavorite(@RequestBody FavDTO dto, HttpServletRequest request) {
         String userId = CookieUtil.getUserIdFromCookie(request);
         if (userId == null) {
