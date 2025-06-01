@@ -66,12 +66,42 @@ GET http://localhost:8080/api/auth/me
 
 ```http
 GET http://localhost:8080/api/lectureroom/search?building=창조관&weekday=월&time=14:00:00
+{
+  "success": true,
+  "message": "강의실 검색 완료",
+  "data": {
+    "availableRooms": [
+      "cha102",
+      "cha141",
+      "cha156",
+      "cha157",
+      "cha511"
+    ],
+    "count": 5
+  }
+}
 ```
 
 #### 강의실 상세조회
 
 ```http
-GET http://localhost:8080/api/lectureroom/select?building=창조관&classId=cha511
+GET http://localhost:8080/api/lectureroom/select?building=창조관&classId=cha511&weekday=월
+
+{
+  "success": true,
+  "message": "강의실 조회 완료",
+  "data": {
+    "classId": "cha511",
+    "room": "511",
+    "building": "창조관",
+    "floor": 5,
+    "capacity": 60,
+    "currentOccupancy": 0,
+    "startTime": "17:00:00",
+    "endTime": "19:00:00",
+    "top3Hashtags": []
+  }
+}
 ```
 
 ### ⭐ 즐겨찾기
@@ -86,7 +116,6 @@ PUT http://localhost:8080/api/favorites/add
 
 ```http
 POST http://localhost:8080/api/favorites/add-manual
-Content-Type: application/json
 
 {
   "classId": "cha511",
@@ -101,7 +130,6 @@ Content-Type: application/json
 
 ```http
 DELETE http://localhost:8080/api/favorites/del
-Content-Type: application/json
 
 {
   "classId": "cha511",
@@ -124,3 +152,4 @@ POST http://localhost:8080/api/mypage/info
 - 모든 API는 Cookie 기반 인증 사용
 - 로그인 후 Cookie가 자동으로 설정됨
 - @Valid 검증 적용으로 잘못된 데이터 시 400 에러 반환
+- **history/add -> usage/start 순서로 사용되어야 함**
