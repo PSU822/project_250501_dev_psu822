@@ -71,14 +71,27 @@ GET http://localhost:8080/api/lectureroom/search?building=창조관&weekday=월&
   "success": true,
   "message": "강의실 검색 완료",
   "data": {
-    "availableRooms": [
-      "cha102",
-      "cha141",
-      "cha156",
-      "cha157",
-      "cha511"
+    "availableRoomsData": [
+      {
+        "classId": "cha102",
+        "room": "102",
+        "capacity": "60",
+        "availableTime": "09:00-21:00"
+      },
+      {
+        "classId": "cha141",
+        "room": "141",
+        "capacity": "60",
+        "availableTime": "09:00-21:00"
+      },
+      {
+        "classId": "cha156",
+        "room": "156",
+        "capacity": "60",
+        "availableTime": "09:00-21:00"
+      }
     ],
-    "count": 5
+    "count": 3
   }
 }
 ```
@@ -88,7 +101,7 @@ GET http://localhost:8080/api/lectureroom/search?building=창조관&weekday=월&
 ```http
 GET http://localhost:8080/api/lectureroom/select?building=창조관&classId=cha511&weekday=월
 
-{
+  {
   "success": true,
   "message": "강의실 조회 완료",
   "data": {
@@ -98,8 +111,13 @@ GET http://localhost:8080/api/lectureroom/select?building=창조관&classId=cha5
     "floor": 5,
     "capacity": 60,
     "currentOccupancy": 0,
-    "startTime": "17:00:00",
-    "endTime": "19:00:00",
+    "scheduleDetails": [
+      {
+        "courseName": "패키징품질관리",
+        "startTime": "10:00",
+        "endTime": "12:00"
+      }
+    ],
     "top3Hashtags": []
   }
 }
