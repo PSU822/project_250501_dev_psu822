@@ -34,7 +34,7 @@ public class LectureRoomDTO {
     private String endTime;
 
     // 응답으로 받을 data
-    private List<String> availableRooms;
+    private List<RoomSearchResultDTO> availableRoomsData;
     private List<String> top3Hashtags;
     private Integer count;
 }

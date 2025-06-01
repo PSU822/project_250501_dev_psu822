@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import Web01.FindRoom.restful.api.DTO.APIResponseDTO;
 import Web01.FindRoom.restful.api.DTO.LectureRoomDTO;
+import Web01.FindRoom.restful.api.DTO.RoomSearchResultDTO;
 import jakarta.persistence.EntityManager;
 
 @Service
@@ -27,30 +28,49 @@ public class LectureRoomService {
     public APIResponseDTO<LectureRoomDTO> search(LectureRoomDTO searchRequest) {
         logger.info("강의실 검색 시도: 건물={}, 요일={}, 시간={}",
                 searchRequest.getBuilding(), searchRequest.getWeekday(), searchRequest.getStartTime());
-        //native sql
+        //native sql + search 연산 변경으로 메소드 분리가 더 코드 리뷰가 힘들어진다고 판단.
         try {
             @SuppressWarnings("unchecked")
-            List<String> availableRooms = entityManager.createNativeQuery(
-                    "SELECT lr.classId FROM lecture_room lr "
+            List<Object[]> roomResults = entityManager.createNativeQuery(
+                    "SELECT lr.classId, lr.room, lr.capacity,"
+                    + "CASE "
+                    + "  WHEN COUNT(ls.classId) = 0 THEN '09:00-21:00' "
+                    + "  ELSE GROUP_CONCAT(DISTINCT "
+                    + "    CASE "
+                    + "      WHEN ls.start_time > '09:00:00' "
+                    + "      THEN CONCAT('09:00-', SUBSTRING(ls.start_time, 1, 5)) "
+                    + "      WHEN ls.end_time < '21:00:00' "
+                    + "      THEN CONCAT(SUBSTRING(ls.end_time, 1, 5), '-21:00') "
+                    + "      ELSE NULL "
+                    + "    END "
+                    + "    SEPARATOR ', ') "
+                    + "END AS available_time "
+                    + "FROM lecture_room lr "
+                    + "LEFT JOIN lecture_schedule ls ON lr.classId = ls.classId AND ls.weekday = ? "
                     + "WHERE lr.building = ? "
-                    + "AND lr.classId NOT IN ("
-                    + "SELECT DISTINCT ls.classId FROM lecture_schedule ls "
-                    + "WHERE ls.weekday = ? "
-                    + "AND ? >= ls.start_time "
-                    + "AND ? < ls.end_time"
-                    + ")")
-                    .setParameter(1, searchRequest.getBuilding())
-                    .setParameter(2, searchRequest.getWeekday())
+                    + "  AND (ls.classId IS NULL OR ? < ls.start_time OR ? >= ls.end_time) "
+                    + "GROUP BY lr.classId, lr.building, lr.room, lr.capacity")
+                    .setParameter(1, searchRequest.getWeekday())
+                    .setParameter(2, searchRequest.getBuilding())
                     .setParameter(3, searchRequest.getStartTime())
                     .setParameter(4, searchRequest.getStartTime())
                     .getResultList();
 
+            List<RoomSearchResultDTO> availableRoomsData = roomResults.stream()
+                    .map(row -> RoomSearchResultDTO.builder()
+                    .classId((String) row[0])
+                    .room((String) row[1])
+                    .capacity(((Integer) row[2]).toString())
+                    .availableTime((String) row[3])
+                    .build())
+                    .collect(Collectors.toList());
+
             LectureRoomDTO response = LectureRoomDTO.builder()
-                    .availableRooms(availableRooms)
-                    .count(availableRooms.size())
+                    .availableRoomsData(availableRoomsData)
+                    .count(availableRoomsData.size())
                     .build();
 
-            logger.info("강의실 검색 성공: {}개 강의실 발견", availableRooms.size());
+            logger.info("강의실 검색 성공: {}개 강의실 발견", availableRoomsData.size());
             return APIResponseDTO.success("강의실 검색 완료", response);
 
         } catch (Exception e) {
