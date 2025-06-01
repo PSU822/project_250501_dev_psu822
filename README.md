@@ -66,6 +66,7 @@ GET http://localhost:8080/api/auth/me
 
 ```http
 GET http://localhost:8080/api/lectureroom/search?building=창조관&weekday=월&time=14:00:00
+
 {
   "success": true,
   "message": "강의실 검색 완료",
@@ -129,7 +130,7 @@ POST http://localhost:8080/api/favorites/add-manual
 #### 즐겨찾기 삭제
 
 ```http
-DELETE http://localhost:8080/api/favorites/del
+POST http://localhost:8080/api/favorites/del
 
 {
   "classId": "cha511",
