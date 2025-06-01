@@ -1,5 +1,6 @@
 package Web01.FindRoom.restful.api.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import Web01.FindRoom.restful.api.DTO.APIResponseDTO;
 import Web01.FindRoom.restful.api.DTO.LectureRoomDTO;
 import Web01.FindRoom.restful.api.DTO.RoomSearchResultDTO;
+import Web01.FindRoom.restful.api.DTO.ScheduleDetailDTO;
 import jakarta.persistence.EntityManager;
 
 @Service
@@ -93,7 +95,7 @@ public class LectureRoomService {
                     + "FROM lecture_room lr "
                     + "LEFT JOIN lecture_schedule ls ON lr.classId = ls.classId AND ls.weekday = ? "
                     + "WHERE lr.building = ? AND lr.classId = ?")
-                    .setParameter(1, selectRequest.getWeekday()) // ← 파라미터로 받은 요일 사용
+                    .setParameter(1, selectRequest.getWeekday())
                     .setParameter(2, selectRequest.getBuilding())
                     .setParameter(3, selectRequest.getClassId())
                     .getResultList();
@@ -122,8 +124,7 @@ public class LectureRoomService {
                     .floor((Integer) row[3])
                     .capacity((Integer) row[4])
                     .currentOccupancy((Integer) row[5])
-                    .startTime((String) row[12])
-                    .endTime((String) row[13])
+                    .scheduleDetails(getScheduleDetails((String) row[0], selectRequest.getWeekday()))
                     .top3Hashtags(top3Hashtags)
                     .build();
 
@@ -156,5 +157,33 @@ public class LectureRoomService {
                 .collect(Collectors.toList());
         // 리스트가 비면(db의 모든 해시가 0일때) 빈 리스트 반환
         return result.isEmpty() ? Collections.emptyList() : result;
+    }
+
+    // 강의 시간표 가져오기 메소드
+    private List<ScheduleDetailDTO> getScheduleDetails(String classId, String weekday) {
+        try {
+            @SuppressWarnings("unchecked")
+            List<Object[]> schedules = entityManager.createNativeQuery(
+                    "SELECT l.course_name, ls.start_time, ls.end_time "
+                    + "FROM lecture_schedule ls "
+                    + "JOIN lecture l ON ls.course_id = l.course_id "
+                    + "WHERE ls.classId = ? AND ls.weekday = ? "
+                    + "ORDER BY ls.start_time")
+                    .setParameter(1, classId)
+                    .setParameter(2, weekday)
+                    .getResultList();
+
+            return schedules.stream()
+                    .map(row -> ScheduleDetailDTO.builder()
+                    .courseName((String) row[0])
+                    .startTime(((String) row[1]).substring(0, 5))
+                    .endTime(((String) row[2]).substring(0, 5))
+                    .build())
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            logger.warn("스케줄 조회 실패: classId={}, weekday={}", classId, weekday);
+            return new ArrayList<>();  // 빈 리스트 반환
+        }
     }
 }
