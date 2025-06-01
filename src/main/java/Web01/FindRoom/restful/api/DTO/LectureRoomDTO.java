@@ -20,7 +20,7 @@ public class LectureRoomDTO {
 
     // 강의실 
     private String classId;
-
+    private String room;
     private String building;
 
     private Integer floor;

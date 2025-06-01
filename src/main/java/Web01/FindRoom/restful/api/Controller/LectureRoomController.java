@@ -43,11 +43,12 @@ public class LectureRoomController {
 
     @GetMapping("/select")
     public ResponseEntity<APIResponseDTO<LectureRoomDTO>> select(@RequestParam String building,
-            @RequestParam String classId) {
+            @RequestParam String classId, @RequestParam String weekday) {
 
         LectureRoomDTO selectRequest = LectureRoomDTO.builder()
                 .building(building)
                 .classId(classId)
+                .weekday(weekday)
                 .build();
         APIResponseDTO<LectureRoomDTO> result = lectureRoomService.select(selectRequest);
 

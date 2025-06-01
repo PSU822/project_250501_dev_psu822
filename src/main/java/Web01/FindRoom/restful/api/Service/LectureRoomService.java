@@ -66,12 +66,16 @@ public class LectureRoomService {
         try {
             @SuppressWarnings("unchecked")
             List<Object[]> result = entityManager.createNativeQuery(
-                    "SELECT classId, building, room, floor, capacity, current_occupancy, "
-                    + "cnt_alone_study, cnt_group_meeting, cnt_quiet, cnt_free_talk, "
-                    + "cnt_short_stay, cnt_comfortable "
-                    + "FROM lecture_room WHERE building = ? AND classId = ?")
-                    .setParameter(1, selectRequest.getBuilding())
-                    .setParameter(2, selectRequest.getClassId())
+                    "SELECT lr.classId, lr.building, lr.room, lr.floor, lr.capacity, lr.current_occupancy, "
+                    + "lr.cnt_alone_study, lr.cnt_group_meeting, lr.cnt_quiet, lr.cnt_free_talk, "
+                    + "lr.cnt_short_stay, lr.cnt_comfortable, "
+                    + "ls.start_time, ls.end_time "
+                    + "FROM lecture_room lr "
+                    + "LEFT JOIN lecture_schedule ls ON lr.classId = ls.classId AND ls.weekday = ? "
+                    + "WHERE lr.building = ? AND lr.classId = ?")
+                    .setParameter(1, selectRequest.getWeekday()) // ← 파라미터로 받은 요일 사용
+                    .setParameter(2, selectRequest.getBuilding())
+                    .setParameter(3, selectRequest.getClassId())
                     .getResultList();
 
             if (result.isEmpty()) {
@@ -94,9 +98,12 @@ public class LectureRoomService {
             LectureRoomDTO response = LectureRoomDTO.builder()
                     .classId((String) row[0])
                     .building((String) row[1])
+                    .room((String) row[2])
                     .floor((Integer) row[3])
                     .capacity((Integer) row[4])
                     .currentOccupancy((Integer) row[5])
+                    .startTime((String) row[12])
+                    .endTime((String) row[13])
                     .top3Hashtags(top3Hashtags)
                     .build();
 
