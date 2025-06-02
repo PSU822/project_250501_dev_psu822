@@ -159,7 +159,7 @@ public class LectureRoomService {
         return result.isEmpty() ? Collections.emptyList() : result;
     }
 
-    // 강의 시간표 가져오기 메소드
+    // 강의 시간표 가져오기용 메소드
     private List<ScheduleDetailDTO> getScheduleDetails(String classId, String weekday) {
         try {
             @SuppressWarnings("unchecked")

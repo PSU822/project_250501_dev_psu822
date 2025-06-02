@@ -1,17 +1,15 @@
 package Web01.FindRoom.restful.api.Controller;
 
-import Web01.FindRoom.restful.api.Service.LectureRoomService;
-
-import Web01.FindRoom.restful.api.DTO.APIResponseDTO;
-import Web01.FindRoom.restful.api.DTO.LectureRoomDTO;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import Web01.FindRoom.restful.api.DTO.APIResponseDTO;
+import Web01.FindRoom.restful.api.DTO.LectureRoomDTO;
+import Web01.FindRoom.restful.api.Service.LectureRoomService;
 
 @RestController
 @RequestMapping("/api/lectureroom")
@@ -29,7 +27,6 @@ public class LectureRoomController {
                 .building(building)
                 .weekday(weekday)
                 .startTime(time)
-                .endTime(time)
                 .build();
 
         APIResponseDTO<LectureRoomDTO> result = lectureRoomService.search(searchRequest);
